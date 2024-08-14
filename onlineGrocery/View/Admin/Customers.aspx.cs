@@ -44,7 +44,7 @@ namespace onlineGrocery.View.Admin
                 else
                 {
                     string CName = CustomerName.Value;
-                    string SEmail = CustomerEmail.Value;
+                    string CEmail = CustomerEmail.Value;
                     string CPassword = "Ngopibarengyuk2022";
                     string CPhone = CustomerPhone.Value;
                     string CAddress = CustomerAddress.Value;
@@ -63,7 +63,7 @@ namespace onlineGrocery.View.Admin
                     string checkEmailQuery = "SELECT COUNT(*) FROM [dbo].[User] WHERE Email = @Email";
                     var parametersCheck = new Dictionary<string, object>
                     {
-                        {"@Email", SEmail}
+                        {"@Email", CEmail}
                     };
 
                     int count = (int)Con.GetData(checkEmailQuery, parametersCheck).Rows[0][0];
@@ -78,7 +78,7 @@ namespace onlineGrocery.View.Admin
                         var parametersInsert = new Dictionary<string, object>
                         {
                             {"@Name", CName},
-                            {"@Email", SEmail},
+                            {"@Email", CEmail},
                             {"@Password", Cryptography.HashPassword(CPassword)},
                             {"@Phone", CPhone},
                             {"@Address", CAddress},
@@ -141,7 +141,7 @@ namespace onlineGrocery.View.Admin
                 {
                     int Id = Convert.ToInt32(CustomerGV.SelectedRow.Cells[1].Text);
                     string CName = CustomerName.Value;
-                    string SEmail = CustomerEmail.Value;
+                    string CEmail = CustomerEmail.Value;
                     string CPhone = CustomerPhone.Value;
                     string CAddress = CustomerAddress.Value;
                     string CPhoto = "";
@@ -171,7 +171,7 @@ namespace onlineGrocery.View.Admin
                     string checkEmailQuery = "SELECT COUNT(*) FROM [dbo].[User] WHERE Email = @Email and id != @Id";
                     var parametersCheck = new Dictionary<string, object>
                     {
-                        {"@Email", SEmail},
+                        {"@Email", CEmail},
                         {"@Id", Id}
                     };
 
@@ -187,7 +187,7 @@ namespace onlineGrocery.View.Admin
                         var parametersUpdate = new Dictionary<string, object>
                         {
                             {"@Name", CName},
-                            {"@Email", SEmail},
+                            {"@Email", CEmail},
                             {"@Phone", CPhone},
                             {"@Address", CAddress},
                             {"@Photo", CPhoto},
@@ -210,43 +210,52 @@ namespace onlineGrocery.View.Admin
         {
             try
             {
-                int Id = Convert.ToInt32(CustomerGV.SelectedRow.Cells[1].Text);
-                string CName = CustomerName.Value;
-
-                string getImagePathQuery = "SELECT Photo FROM [dbo].[User] WHERE Id = @Id";
-                var parametersGetImagePath = new Dictionary<string, object>
+                if (string.IsNullOrWhiteSpace(CustomerName.Value) ||
+                    string.IsNullOrWhiteSpace(CustomerEmail.Value) ||
+                    string.IsNullOrWhiteSpace(CustomerPhone.Value))
                 {
-                    {"@Id", Id}
-                };
-
-                DataTable dt = Con.GetData(getImagePathQuery, parametersGetImagePath);
-                string imagePath = dt.Rows.Count > 0 ? dt.Rows[0]["Photo"].ToString() : string.Empty;
-
-                string deleteQuery = "DELETE FROM [dbo].[User] WHERE Id = @Id";
-                var parametersDelete = new Dictionary<string, object>
-
-                {
-                    {"@Id", Id}
-                };
-
-                Con.SetData(deleteQuery, parametersDelete);
-
-                if (!string.IsNullOrEmpty(imagePath))
-                {
-                    string fullPath = Server.MapPath(imagePath);
-                    if (System.IO.File.Exists(fullPath))
-                    {
-                        System.IO.File.Delete(fullPath);
-                    }
+                    msg.InnerText = "Missing Data";
                 }
+                else
+                {
+                    int Id = Convert.ToInt32(CustomerGV.SelectedRow.Cells[1].Text);
+                    string CName = CustomerName.Value;
 
-                msg.InnerText = "Customer " + CName + " Has Been Deleted!!!";
-                ShowCustomers();
+                    string getImagePathQuery = "SELECT Photo FROM [dbo].[User] WHERE Id = @Id";
+                    var parametersGetImagePath = new Dictionary<string, object>
+                {
+                    {"@Id", Id}
+                };
 
-                CustomerName.Value = string.Empty;
-                CustomerEmail.Value = string.Empty;
-                CustomerPhone.Value = string.Empty;
-                CustomerAddress.Value = string.Empty;
+                    DataTable dt = Con.GetData(getImagePathQuery, parametersGetImagePath);
+                    string imagePath = dt.Rows.Count > 0 ? dt.Rows[0]["Photo"].ToString() : string.Empty;
+
+                    string deleteQuery = "DELETE FROM [dbo].[User] WHERE Id = @Id";
+                    var parametersDelete = new Dictionary<string, object>
+
+                {
+                    {"@Id", Id}
+                };
+
+                    Con.SetData(deleteQuery, parametersDelete);
+
+                    if (!string.IsNullOrEmpty(imagePath))
+                    {
+                        string fullPath = Server.MapPath(imagePath);
+                        if (System.IO.File.Exists(fullPath))
+                        {
+                            System.IO.File.Delete(fullPath);
+                        }
+                    }
+
+                    msg.InnerText = "Customer " + CName + " Has Been Deleted!!!";
+                    ShowCustomers();
+
+                    CustomerName.Value = string.Empty;
+                    CustomerEmail.Value = string.Empty;
+                    CustomerPhone.Value = string.Empty;
+                    CustomerAddress.Value = string.Empty;
+                }
             }
             catch (Exception Ex)
             {
